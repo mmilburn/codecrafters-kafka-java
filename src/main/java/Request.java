@@ -4,35 +4,21 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+public class Request {
+    private final RequestHeader header;
+    private final byte[] body;
 
-public class Message {
-    private Header header;
-    private byte[] body;
-
-    public Message(Header header, byte[] body) {
+    public Request(RequestHeader header, byte[] body) {
         this.header = header;
         this.body = body;
     }
 
-    public Message(Header header) {
-        this.header = header;
-        this.body = new byte[0];
-    }
-
-    public Header getHeader() {
+    public RequestHeader getHeader() {
         return header;
-    }
-
-    public void setHeader(Header header) {
-        this.header = header;
     }
 
     public byte[] getBody() {
         return body;
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
     }
 
     public byte[] toBytes() {
@@ -40,23 +26,22 @@ public class Message {
         try (DataOutputStream dos = new DataOutputStream(baos)) {
             byte[] headerBytes = header.toBytes();
             dos.writeInt(headerBytes.length + body.length);
-            dos.write(header.toBytes());
+            dos.write(headerBytes);
             dos.write(body);
-            dos.flush();
+           dos.flush();
         } catch (IOException ioNo) {
             System.err.println(Arrays.toString(ioNo.getStackTrace()));
         }
         return baos.toByteArray();
     }
 
-    public static Message fromByteBuffer(ByteBuffer data) {
-        int messageSize = data.getInt();
+    public static Request fromByteBuffer(ByteBuffer data) {
+        int size = data.getInt();
         int start = data.position();
-        Header header = Header.fromByteBuffer(data);
-        int headerSize = data.position() - start;
-        byte[] body = new byte[messageSize - headerSize];
-        data.get(body);
-        return new Message(header, body);
+        RequestHeader requestHeader = RequestHeader.fromByteBuffer(data);
+        //int headerSize = data.position() - start;
+        //byte[] body = new byte[size - headerSize];
+        //data.get(body);
+        return new Request(requestHeader, new byte[0]);
     }
-
 }

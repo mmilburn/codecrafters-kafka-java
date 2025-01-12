@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,10 +17,14 @@ public class Main {
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
-            Message response = new Message(new Header(7));
+            InputStream is = clientSocket.getInputStream();
             OutputStream os = clientSocket.getOutputStream();
-            os.write(response.toBytes());
-            os.flush();
+            while (is.available() > 0) {
+                Request request = Request.fromByteBuffer(inputStreamToByteBuffer(is));
+                Response response = new Response(new ResponseHeader(request.getHeader().getCorrelationId()));
+                os.write(response.toBytes());
+                os.flush();
+            }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         } finally {
@@ -37,7 +42,7 @@ public class Main {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[is.available()];
         int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
+        if ((bytesRead = is.read(buffer)) != -1) {
             baos.write(buffer, 0, bytesRead);
         }
         return ByteBuffer.wrap(baos.toByteArray());
