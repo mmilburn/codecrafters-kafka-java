@@ -7,16 +7,21 @@ import java.util.Arrays;
 
 public class Response {
     private ResponseHeader responseHeader;
-    private byte[] body;
+    private ResponseBody body;
 
-    public Response(ResponseHeader responseHeader, byte[] body) {
+    public Response(ResponseHeader responseHeader, ResponseBody body) {
         this.responseHeader = responseHeader;
         this.body = body;
     }
 
     public Response(ResponseHeader responseHeader) {
         this.responseHeader = responseHeader;
-        this.body = new byte[0];
+        this.body = new ResponseBody();
+    }
+
+    public Response(Request request) {
+        this.responseHeader = new ResponseHeader(request.getHeader().getCorrelationId());
+        this.body = new ResponseBody(request);
     }
 
     public ResponseHeader getHeader() {
@@ -27,21 +32,18 @@ public class Response {
         this.responseHeader = responseHeader;
     }
 
-    public byte[] getBody() {
+    public ResponseBody getBody() {
         return body;
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
     }
 
     public byte[] toBytes() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DataOutputStream dos = new DataOutputStream(baos)) {
             byte[] headerBytes = responseHeader.toBytes();
-            dos.writeInt(headerBytes.length + body.length);
-            dos.write(responseHeader.toBytes());
-            dos.write(body);
+            byte[] bodyBytes = body.toBytes();
+            dos.writeInt(headerBytes.length + bodyBytes.length);
+            dos.write(headerBytes);
+            dos.write(bodyBytes);
             dos.flush();
         } catch (IOException ioNo) {
             System.err.println(Arrays.toString(ioNo.getStackTrace()));
@@ -56,7 +58,7 @@ public class Response {
         int headerSize = data.position() - start;
         byte[] body = new byte[messageSize - headerSize];
         data.get(body);
-        return new Response(responseHeader, body);
+        return new Response(responseHeader);
     }
 
 }

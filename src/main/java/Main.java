@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,7 +20,7 @@ public class Main {
             OutputStream os = clientSocket.getOutputStream();
             while (is.available() > 0) {
                 Request request = Request.fromByteBuffer(inputStreamToByteBuffer(is));
-                Response response = new Response(new ResponseHeader(request.getHeader().getCorrelationId()));
+                Response response = new Response(request);
                 os.write(response.toBytes());
                 os.flush();
             }
