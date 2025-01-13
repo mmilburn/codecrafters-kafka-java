@@ -20,13 +20,29 @@ public class APIVersions implements ElementSerializer<APIVersions>{
         this.tagBuffer = tagBuffer;
     }
 
+    public short getApiKey() {
+        return apiKey;
+    }
+
+    public short getMinSupportedVersion() {
+        return minSupportedVersion;
+    }
+
+    public short getMaxSupportedVersion() {
+        return maxSupportedVersion;
+    }
+
+    public TagBuffer getTagBuffer() {
+        return tagBuffer;
+    }
+
     @Override
-    public byte[] toBytes(APIVersions element) {
+    public byte[] toBytes(APIVersions apiVersions) {
         return StreamUtils.toBytes(dos -> {
-            dos.writeShort(apiKey);
-            dos.writeShort(minSupportedVersion);
-            dos.writeShort(maxSupportedVersion);
-            dos.write(tagBuffer.toBytes());
+            dos.writeShort(apiVersions.getApiKey());
+            dos.writeShort(apiVersions.getMinSupportedVersion());
+            dos.writeShort(apiVersions.getMaxSupportedVersion());
+            dos.write(apiVersions.getTagBuffer().toBytes());
         });
     }
 

@@ -7,7 +7,10 @@ import shared.TagBuffer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class APIVersionsResponse extends ResponseBody {
     private short errorCode = 0;
@@ -19,8 +22,13 @@ public class APIVersionsResponse extends ResponseBody {
         if (request.getHeader().getRequestAPIVersion() != 4) {
             this.errorCode = 35;
         }
-        APIVersions apiVersions = new APIVersions((short) 18, (short) 0, (short) 4, new TagBuffer());
-        this.apiVersionsArray = new CompactArray<>(Collections.singletonList(apiVersions), apiVersions);
+        List<APIVersions> apiVersionsList = new ArrayList<>(Arrays.asList(
+                new APIVersions((short) 18, (short) 0, (short) 4, new TagBuffer()),
+                new APIVersions((short) 75, (short) 0, (short) 0, new TagBuffer())
+        ));
+        this.apiVersionsArray = new CompactArray<>(apiVersionsList,
+                //FIXME: this is hacky!
+                new APIVersions());
     }
 
     @Override

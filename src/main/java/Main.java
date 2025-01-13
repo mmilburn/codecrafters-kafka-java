@@ -8,8 +8,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(8);
+
     public static void main(String[] args) {
         int port = 9092;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -20,10 +24,12 @@ public class Main {
             while (true) {
                 // Wait for connection from client.
                 Socket clientSocket = serverSocket.accept();
-                new Thread(() -> handleClient(clientSocket)).start();
+                executorService.submit(() -> handleClient(clientSocket));
             }
         } catch (IOException e) {
             System.out.println("IOException: " + Arrays.toString(e.getStackTrace()));
+        } finally {
+            executorService.shutdown();
         }
     }
 
