@@ -1,10 +1,13 @@
-import java.io.ByteArrayOutputStream;
+import requests.Request;
+import responses.Response;
+
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,34 +19,27 @@ public class Main {
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
-            InputStream is = clientSocket.getInputStream();
-            OutputStream os = clientSocket.getOutputStream();
-            while (is.available() > 0) {
-                Request request = Request.fromByteBuffer(inputStreamToByteBuffer(is));
+            try (DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                 OutputStream os = clientSocket.getOutputStream()) {
+                int len = dis.readInt();
+                byte[] requestBytes = new byte[len];
+                dis.readFully(requestBytes);
+                ByteBuffer requestBuffer = ByteBuffer.wrap(requestBytes);
+                Request request = Request.fromByteBuffer(requestBuffer);
                 Response response = new Response(request);
                 os.write(response.toBytes());
                 os.flush();
             }
         } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
+            System.out.println("IOException: " + Arrays.toString(e.getStackTrace()));
         } finally {
             try {
                 if (clientSocket != null) {
                     clientSocket.close();
                 }
             } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
+                System.out.println("IOException: " + Arrays.toString(e.getStackTrace()));
             }
         }
-    }
-
-    private static ByteBuffer inputStreamToByteBuffer(InputStream is) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[is.available()];
-        int bytesRead;
-        if ((bytesRead = is.read(buffer)) != -1) {
-            baos.write(buffer, 0, bytesRead);
-        }
-        return ByteBuffer.wrap(baos.toByteArray());
     }
 }

@@ -1,22 +1,24 @@
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+package requests;
+
+import shared.TagBuffer;
+import util.StreamUtils;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class RequestHeader {
     private final short requestAPIKey;
     private final short requestAPIVersion;
     private final int correlationId;
     private final String clientId;
-    private byte[] tagBuffer;
+    private final TagBuffer tagBuffer;
 
-    public RequestHeader(short requestAPIKey, short requestAPIVersion, int correlationId, String clientId) {
+    public RequestHeader(short requestAPIKey, short requestAPIVersion, int correlationId, String clientId, TagBuffer tagBuffer) {
         this.requestAPIKey = requestAPIKey;
         this.requestAPIVersion = requestAPIVersion;
         this.correlationId = correlationId;
         this.clientId = clientId;
+        this.tagBuffer = tagBuffer;
     }
 
     public short getRequestAPIKey() {
@@ -36,8 +38,7 @@ public class RequestHeader {
     }
 
     public byte[] toBytes() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
+        return StreamUtils.toBytes(dos -> {
             dos.writeShort(requestAPIKey);
             dos.writeShort(requestAPIVersion);
             dos.writeInt(correlationId);
@@ -47,31 +48,22 @@ public class RequestHeader {
             } else {
                 dos.writeShort(-1);
             }
-            //TODO: implement tagbuffer
-            dos.writeInt(tagBuffer.length + 1);
-            dos.write(tagBuffer);
-            dos.flush();
-        }
-        catch (IOException ioNo) {
-            System.err.println(Arrays.toString(ioNo.getStackTrace()));
-        }
-        return baos.toByteArray();
+            dos.write(tagBuffer.toBytes());
+        });
     }
 
     public static RequestHeader fromByteBuffer(ByteBuffer data) {
-        short requesetAPIKey = data.getShort();
+        short requestAPIKey = data.getShort();
         short requestAPIVersion = data.getShort();
         int correlationId = data.getInt();
         short clientIdLen = data.getShort();
         String clientId = "";
         if (clientIdLen != -1) {
             byte[] buf = new byte[clientIdLen];
-            data.get(clientIdLen);
+            data.get(buf);
             clientId = new String(buf, StandardCharsets.UTF_8);
         }
-        //TODO tagbuffer
-        long tagLen = Integer.toUnsignedLong(data.getInt());
-
-        return new RequestHeader(requesetAPIKey, requestAPIVersion, correlationId, clientId);
+        TagBuffer tagBuffer = TagBuffer.fromByteBuffer(data);
+        return new RequestHeader(requestAPIKey, requestAPIVersion, correlationId, clientId, tagBuffer);
     }
 }

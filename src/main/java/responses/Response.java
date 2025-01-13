@@ -1,27 +1,25 @@
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+package responses;
+
+import requests.APIVersionsRequest;
+import requests.Request;
+import util.StreamUtils;
+
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 
 public class Response {
     private ResponseHeader responseHeader;
     private ResponseBody body;
 
-    public Response(ResponseHeader responseHeader, ResponseBody body) {
-        this.responseHeader = responseHeader;
-        this.body = body;
-    }
-
     public Response(ResponseHeader responseHeader) {
         this.responseHeader = responseHeader;
-        this.body = new ResponseBody();
     }
 
     public Response(Request request) {
         this.responseHeader = new ResponseHeader(request.getHeader().getCorrelationId());
-        this.body = new ResponseBody(request);
+        if (request.getBody() instanceof APIVersionsRequest) {
+            this.body = new APIVersionsResponse(request);
+        }
     }
 
     public ResponseHeader getHeader() {
@@ -37,18 +35,13 @@ public class Response {
     }
 
     public byte[] toBytes() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
+        return StreamUtils.toBytes(dos -> {
             byte[] headerBytes = responseHeader.toBytes();
             byte[] bodyBytes = body.toBytes();
             dos.writeInt(headerBytes.length + bodyBytes.length);
             dos.write(headerBytes);
             dos.write(bodyBytes);
-            dos.flush();
-        } catch (IOException ioNo) {
-            System.err.println(Arrays.toString(ioNo.getStackTrace()));
-        }
-        return baos.toByteArray();
+        });
     }
 
     public static Response fromByteBuffer(ByteBuffer data) {
