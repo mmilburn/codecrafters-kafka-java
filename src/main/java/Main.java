@@ -27,7 +27,7 @@ public class Main {
                 executorService.submit(() -> handleClient(clientSocket));
             }
         } catch (IOException e) {
-            System.out.println("IOException: " + Arrays.toString(e.getStackTrace()));
+            System.err.println("IOException: " + Arrays.toString(e.getStackTrace()));
         } finally {
             executorService.shutdown();
         }
@@ -43,7 +43,7 @@ public class Main {
                     byte[] requestBytes = new byte[len];
                     dis.readFully(requestBytes);
                     ByteBuffer requestBuffer = ByteBuffer.wrap(requestBytes);
-                    Request request = Request.fromByteBuffer(requestBuffer);
+                    Request<?> request = Request.fromByteBuffer(requestBuffer);
                     Response response = new Response(request);
                     os.write(response.toBytes());
                     os.flush();
@@ -57,7 +57,7 @@ public class Main {
                     clientSocket.close();
                 }
             } catch (IOException e) {
-                System.out.println("IOException: " + Arrays.toString(e.getStackTrace()));
+                System.err.println("IOException: " + Arrays.toString(e.getStackTrace()));
             }
         }
     }

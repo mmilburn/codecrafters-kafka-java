@@ -29,8 +29,9 @@ public class CompactString {
     }
 
     public static CompactString fromByteBuffer(ByteBuffer data) {
-        int strLen = VarInt.fromByteBuffer(data).getUnsignedValue() - 1;
-        byte[] temp = new byte[(int) strLen];
+        VarInt len = VarInt.fromByteBuffer(data);
+        int strLen = len.getUnsignedValue() - 1;
+        byte[] temp = new byte[strLen];
         data.get(temp);
         return new CompactString(new String(temp, StandardCharsets.UTF_8));
     }

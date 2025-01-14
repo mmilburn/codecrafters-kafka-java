@@ -5,7 +5,7 @@ import util.StreamUtils;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public class StringSerializer implements ElementSerializer<String>{
+public class StringSerializer implements ElementSerializer<String> {
     @Override
     public byte[] toBytes(String element) {
         return StreamUtils.toBytes(dos -> {

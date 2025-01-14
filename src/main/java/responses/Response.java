@@ -1,7 +1,9 @@
 package responses;
 
 import requests.APIVersionsRequest;
+import requests.DescribeTopicPartitionsRequest;
 import requests.Request;
+import shared.TagBuffer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
@@ -15,10 +17,13 @@ public class Response {
         this.responseHeader = responseHeader;
     }
 
-    public Response(Request request) {
-        this.responseHeader = new ResponseHeader(request.getHeader().getCorrelationId());
-        if (request.getBody() instanceof APIVersionsRequest) {
+    public Response(Request<?> request) {
+        this.responseHeader = new ResponseHeader(request.header().getCorrelationId());
+        if (request.body() instanceof APIVersionsRequest) {
             this.body = new APIVersionsResponse(request);
+        } else if (request.body() instanceof DescribeTopicPartitionsRequest) {
+            this.responseHeader = new ResponseHeader(request.header().getCorrelationId(), new TagBuffer());
+            this.body = new DescribeTopicPartitionsResponse((DescribeTopicPartitionsRequest) request.body());
         }
     }
 

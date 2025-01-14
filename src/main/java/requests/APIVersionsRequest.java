@@ -6,7 +6,7 @@ import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 
-public class APIVersionsRequest extends RequestBody {
+public class APIVersionsRequest extends RequestBody<APIVersionsRequest> {
     private CompactString clientID;
     private CompactString clientSoftwareVersion;
     private TagBuffer tagBuffer;

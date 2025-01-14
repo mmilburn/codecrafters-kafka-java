@@ -2,7 +2,8 @@ package requests;
 
 import java.nio.ByteBuffer;
 
-public abstract class RequestBody {
-    public abstract APIVersionsRequest fromByteBuffer(ByteBuffer data);
+public abstract class RequestBody<T> {
+    public abstract T fromByteBuffer(ByteBuffer data);
+
     public abstract byte[] toBytes();
 }

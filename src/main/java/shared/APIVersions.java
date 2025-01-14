@@ -4,7 +4,7 @@ import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 
-public class APIVersions implements ElementSerializer<APIVersions>{
+public class APIVersions implements ElementSerializer<APIVersions> {
     private short apiKey;
     private short minSupportedVersion;
     private short maxSupportedVersion;

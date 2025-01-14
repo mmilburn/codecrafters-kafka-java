@@ -1,42 +1,22 @@
 package requests;
 
-import util.StreamUtils;
-
 import java.nio.ByteBuffer;
 
-public class Request {
-    private final RequestHeader header;
-    private final RequestBody body;
+public record Request<T>(RequestHeader header, T body) {
 
-    public Request(RequestHeader header, RequestBody body) {
-        this.header = header;
-        this.body = body;
-    }
-
-    public RequestHeader getHeader() {
-        return header;
-    }
-
-    public RequestBody getBody() {
-        return body;
-    }
-
-    public byte[] toBytes() {
-        return StreamUtils.toBytes(dos -> {
-            byte[] headerBytes = header.toBytes();
-            byte[] bodyBytes = body.toBytes();
-            dos.writeInt(headerBytes.length + bodyBytes.length);
-            dos.write(headerBytes);
-            dos.write(bodyBytes);
-        });
-    }
-
-    public static Request fromByteBuffer(ByteBuffer data) {
+    public static Request<?> fromByteBuffer(ByteBuffer data) {
         RequestHeader requestHeader = RequestHeader.fromByteBuffer(data);
-        RequestBody requestBody = null;
-        if (requestHeader.getRequestAPIKey() == 18) {
-            requestBody = new APIVersionsRequest();
+        switch (requestHeader.getRequestAPIKey()) {
+            case 18 -> {
+                return new Request<>(requestHeader, new APIVersionsRequest().fromByteBuffer(data));
+            }
+            case 75 -> {
+                return new Request<>(requestHeader, new DescribeTopicPartitionsRequest().fromByteBuffer(data));
+            }
+            default -> {
+                System.err.println("Unexpected value: " + requestHeader.getRequestAPIKey());
+                return new Request<>(requestHeader, null);
+            }
         }
-        return new Request(requestHeader, requestBody);
     }
 }

@@ -30,23 +30,23 @@ public class CompactArray<T> {
         }
         return StreamUtils.toBytes(dos -> {
             dos.write(new VarInt(elements.size() + 1).toBytes());
-            for (T element: elements) {
+            for (T element : elements) {
                 dos.write(serializer.toBytes(element));
             }
         });
     }
 
-    public static <T> CompactArray<T> fromBytes(ByteBuffer data, ElementSerializer<T> serializer) {
-       int len = VarInt.fromByteBuffer(data).getUnsignedValue();
-       if (len == 0) {
-           return new CompactArray<>(serializer);
-       }
-       len = len - 1;
-       List<T> elements = new ArrayList<>(len);
-       for (int i = 0; i < len; i++) {
-           elements.add(serializer.fromByteBuffer(data));
-       }
-       return new CompactArray<>(elements, serializer);
+    public static <T> CompactArray<T> fromByteBuffer(ByteBuffer data, ElementSerializer<T> serializer) {
+        int len = VarInt.fromByteBuffer(data).getUnsignedValue();
+        if (len == 0) {
+            return new CompactArray<>(serializer);
+        }
+        len = len - 1;
+        List<T> elements = new ArrayList<>(len);
+        for (int i = 0; i < len; i++) {
+            elements.add(serializer.fromByteBuffer(data));
+        }
+        return new CompactArray<>(elements, serializer);
     }
 
 
