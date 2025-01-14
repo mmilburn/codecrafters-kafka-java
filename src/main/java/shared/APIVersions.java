@@ -1,5 +1,6 @@
 package shared;
 
+import shared.serializer.ElementSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;

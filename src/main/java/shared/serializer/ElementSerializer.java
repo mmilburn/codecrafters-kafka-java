@@ -1,4 +1,4 @@
-package shared;
+package shared.serializer;
 
 import java.nio.ByteBuffer;
 

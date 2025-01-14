@@ -4,6 +4,8 @@ import shared.CompactArray;
 import shared.Cursor;
 import shared.RequestTopic;
 import shared.TagBuffer;
+import shared.serializer.ElementSerializer;
+import shared.serializer.RequestTopicSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
@@ -32,7 +34,8 @@ public class DescribeTopicPartitionsRequest extends RequestBody<DescribeTopicPar
 
     @Override
     public DescribeTopicPartitionsRequest fromByteBuffer(ByteBuffer data) {
-        this.topicsArray = CompactArray.fromByteBuffer(data, new RequestTopic());
+        ElementSerializer<RequestTopic> requestTopicSerializer = new RequestTopicSerializer();
+        this.topicsArray = CompactArray.fromByteBuffer(data, requestTopicSerializer, RequestTopic::new);
         this.responsePartitionLimit = data.getInt();
         //FIXME: Another hack!
         this.cursor = Cursor.nullCursor().fromByteBuffer(data);

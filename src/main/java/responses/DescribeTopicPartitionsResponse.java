@@ -2,6 +2,7 @@ package responses;
 
 import requests.DescribeTopicPartitionsRequest;
 import shared.*;
+import shared.serializer.ResponseTopicSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
@@ -22,14 +23,14 @@ public class DescribeTopicPartitionsResponse extends ResponseBody {
             respTopic.setErrorCode((short) 3);
             respTopics.add(respTopic);
         }
-        this.topicsArray = new CompactArray<>(respTopics, new ResponseTopic());
+        this.topicsArray = CompactArray.withElements(respTopics, new ResponseTopicSerializer());
         this.nextCursor = Cursor.nullCursor();
     }
 
     @Override
     public DescribeTopicPartitionsResponse fromBytebuffer(ByteBuffer data) {
         this.throttleTime = data.getInt();
-        this.topicsArray = CompactArray.fromByteBuffer(data, new ResponseTopic());
+        this.topicsArray = CompactArray.fromByteBuffer(data, new ResponseTopicSerializer(), ResponseTopic::new);
         this.nextCursor = Cursor.nullCursor().fromByteBuffer(data);
         this.tagBuffer = TagBuffer.fromByteBuffer(data);
         return this;

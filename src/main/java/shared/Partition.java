@@ -1,19 +1,17 @@
 package shared;
 
-import util.StreamUtils;
+import shared.serializer.ReplicaNodeSerializer;
 
-import java.nio.ByteBuffer;
-
-public class Partition implements ElementSerializer<Partition> {
+public class Partition {
     private short errorCode;
     private int partitionIndex;
     private int leaderID;
     private int leaderEpoch;
-    private CompactArray<ReplicaNode> replicaNodeArray = new CompactArray<>(null, new ReplicaNode(-1));
-    private CompactArray<ReplicaNode> isrNodeArray = new CompactArray<>(null, new ReplicaNode(-1));
-    private CompactArray<ReplicaNode> eligibleLeaderReplicas = new CompactArray<>(null, new ReplicaNode(-1));
-    private CompactArray<ReplicaNode> lastKnownELR = new CompactArray<>(null, new ReplicaNode(-1));
-    private CompactArray<ReplicaNode> offlineReplicas = new CompactArray<>(null, new ReplicaNode(-1));
+    private CompactArray<ReplicaNode> replicaNodeArray = CompactArray.empty(new ReplicaNodeSerializer(), ReplicaNode::new);
+    private CompactArray<ReplicaNode> isrNodeArray = CompactArray.empty(new ReplicaNodeSerializer(), ReplicaNode::new);
+    private CompactArray<ReplicaNode> eligibleLeaderReplicas = CompactArray.empty(new ReplicaNodeSerializer(), ReplicaNode::new);
+    private CompactArray<ReplicaNode> lastKnownELR = CompactArray.empty(new ReplicaNodeSerializer(), ReplicaNode::new);
+    private CompactArray<ReplicaNode> offlineReplicas = CompactArray.empty(new ReplicaNodeSerializer(), ReplicaNode::new);
     private TagBuffer tagBuffer = new TagBuffer();
 
     public Partition() {
@@ -72,36 +70,43 @@ public class Partition implements ElementSerializer<Partition> {
         return tagBuffer;
     }
 
-    @Override
-    public byte[] toBytes(Partition part) {
-        return StreamUtils.toBytes(dos -> {
-            dos.writeShort(part.getErrorCode());
-            dos.writeInt(part.getPartitionIndex());
-            dos.writeInt(part.getLeaderID());
-            dos.writeInt(part.getLeaderEpoch());
-            dos.write(part.getReplicaNodeArray().toBytes());
-            dos.write(part.getIsrNodeArray().toBytes());
-            dos.write(part.getEligibleLeaderReplicas().toBytes());
-            dos.write(part.getLastKnownELR().toBytes());
-            dos.write(part.getOfflineReplicas().toBytes());
-            dos.write(part.getTagBuffer().toBytes());
-        });
+    public void setErrorCode(short errorCode) {
+        this.errorCode = errorCode;
     }
 
-    @Override
-    public Partition fromByteBuffer(ByteBuffer data) {
-        ReplicaNode dummy = new ReplicaNode(-1);
-        this.errorCode = data.getShort();
-        this.partitionIndex = data.getInt();
-        this.leaderID = data.getInt();
-        this.leaderEpoch = data.getInt();
-        //FIXME: terrible hacks!
-        this.replicaNodeArray = CompactArray.fromByteBuffer(data, dummy);
-        this.isrNodeArray = CompactArray.fromByteBuffer(data, dummy);
-        this.eligibleLeaderReplicas = CompactArray.fromByteBuffer(data, dummy);
-        this.lastKnownELR = CompactArray.fromByteBuffer(data, dummy);
-        this.offlineReplicas = CompactArray.fromByteBuffer(data, dummy);
-        this.tagBuffer = TagBuffer.fromByteBuffer(data);
-        return this;
+    public void setPartitionIndex(int partitionIndex) {
+        this.partitionIndex = partitionIndex;
+    }
+
+    public void setLeaderID(int leaderID) {
+        this.leaderID = leaderID;
+    }
+
+    public void setLeaderEpoch(int leaderEpoch) {
+        this.leaderEpoch = leaderEpoch;
+    }
+
+    public void setReplicaNodeArray(CompactArray<ReplicaNode> replicaNodeArray) {
+        this.replicaNodeArray = replicaNodeArray;
+    }
+
+    public void setIsrNodeArray(CompactArray<ReplicaNode> isrNodeArray) {
+        this.isrNodeArray = isrNodeArray;
+    }
+
+    public void setEligibleLeaderReplicas(CompactArray<ReplicaNode> eligibleLeaderReplicas) {
+        this.eligibleLeaderReplicas = eligibleLeaderReplicas;
+    }
+
+    public void setLastKnownELR(CompactArray<ReplicaNode> lastKnownELR) {
+        this.lastKnownELR = lastKnownELR;
+    }
+
+    public void setOfflineReplicas(CompactArray<ReplicaNode> offlineReplicas) {
+        this.offlineReplicas = offlineReplicas;
+    }
+
+    public void setTagBuffer(TagBuffer tagBuffer) {
+        this.tagBuffer = tagBuffer;
     }
 }

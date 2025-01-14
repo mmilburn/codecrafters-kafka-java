@@ -1,10 +1,6 @@
 package shared;
 
-import util.StreamUtils;
-
-import java.nio.ByteBuffer;
-
-public class RequestTopic implements ElementSerializer<RequestTopic> {
+public class RequestTopic {
     private CompactString topicName;
     private TagBuffer topicTagBuffer;
 
@@ -24,16 +20,4 @@ public class RequestTopic implements ElementSerializer<RequestTopic> {
         return topicTagBuffer;
     }
 
-    @Override
-    public byte[] toBytes(RequestTopic requestTopic) {
-        return StreamUtils.toBytes(dos -> {
-            dos.write(requestTopic.getTopicName().toBytes());
-            dos.write(requestTopic.getTopicTagBuffer().toBytes());
-        });
-    }
-
-    @Override
-    public RequestTopic fromByteBuffer(ByteBuffer data) {
-        return new RequestTopic(CompactString.fromByteBuffer(data), TagBuffer.fromByteBuffer(data));
-    }
 }

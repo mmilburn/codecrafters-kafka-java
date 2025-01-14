@@ -1,11 +1,10 @@
 package shared;
 
-import util.StreamUtils;
+public class ReplicaNode {
+    private int nodeId = -1;
 
-import java.nio.ByteBuffer;
-
-public class ReplicaNode implements ElementSerializer<ReplicaNode> {
-    private final int nodeId;
+    public ReplicaNode() {
+    }
 
     public ReplicaNode(int nodeId) {
         this.nodeId = nodeId;
@@ -15,15 +14,5 @@ public class ReplicaNode implements ElementSerializer<ReplicaNode> {
         return nodeId;
     }
 
-    @Override
-    public byte[] toBytes(ReplicaNode element) {
-        return StreamUtils.toBytes(dos -> {
-            dos.writeInt(element.getNodeId());
-        });
-    }
 
-    @Override
-    public ReplicaNode fromByteBuffer(ByteBuffer data) {
-        return new ReplicaNode(data.getInt());
-    }
 }

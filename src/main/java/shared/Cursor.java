@@ -1,5 +1,6 @@
 package shared;
 
+import shared.serializer.ElementSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
@@ -40,7 +41,6 @@ public class Cursor implements ElementSerializer<Cursor> {
             if (element.isNull()) {
                 dos.write(-1);
             } else {
-                //dos.write(new VarInt(0).toBytes());
                 if (element.getTopicName().isPresent() && element.getPartitionIndex().isPresent()) {
                     dos.write(element.getTopicName().get().toBytes());
                     dos.writeInt(element.getPartitionIndex().get());

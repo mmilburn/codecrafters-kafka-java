@@ -1,16 +1,15 @@
 package shared;
 
-import util.StreamUtils;
+import shared.serializer.PartitionSerializer;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
-public class ResponseTopic implements ElementSerializer<ResponseTopic> {
+public class ResponseTopic {
     private short errorCode;
     private CompactString topicName;
     private UUID topicID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private boolean isInternal;
-    private CompactArray<Partition> partitionCompactArray = new CompactArray<>(null, new Partition());
+    private CompactArray<Partition> partitionCompactArray = CompactArray.empty(new PartitionSerializer(), Partition::new);
     private int topicAuthorizedOperations;
     private TagBuffer tagBuffer = new TagBuffer();
 
@@ -63,30 +62,23 @@ public class ResponseTopic implements ElementSerializer<ResponseTopic> {
         this.topicName = topicName;
     }
 
-    @Override
-    public byte[] toBytes(ResponseTopic element) {
-        return StreamUtils.toBytes(dos -> {
-            UUID uuid = element.getTopicID();
-            dos.writeShort(element.getErrorCode());
-            dos.write(element.getTopicName().toBytes());
-            dos.writeLong(uuid.getMostSignificantBits());
-            dos.writeLong(uuid.getLeastSignificantBits());
-            dos.writeBoolean(element.isInternal());
-            dos.write(element.getPartitionCompactArray().toBytes());
-            dos.writeInt(element.getTopicAuthorizedOperations());
-            dos.write(element.getTagBuffer().toBytes());
-        });
+    public void setTopicID(UUID topicID) {
+        this.topicID = topicID;
     }
 
-    @Override
-    public ResponseTopic fromByteBuffer(ByteBuffer data) {
-        this.errorCode = data.getShort();
-        this.topicName = CompactString.fromByteBuffer(data);
-        this.topicID = new UUID(data.getLong(), data.getLong());
-        this.isInternal = data.get() != 0;
-        this.partitionCompactArray = CompactArray.fromByteBuffer(data, new Partition());
-        this.topicAuthorizedOperations = data.getInt();
-        this.tagBuffer = TagBuffer.fromByteBuffer(data);
-        return this;
+    public void setInternal(boolean internal) {
+        isInternal = internal;
+    }
+
+    public void setPartitionCompactArray(CompactArray<Partition> partitionCompactArray) {
+        this.partitionCompactArray = partitionCompactArray;
+    }
+
+    public void setTopicAuthorizedOperations(int topicAuthorizedOperations) {
+        this.topicAuthorizedOperations = topicAuthorizedOperations;
+    }
+
+    public void setTagBuffer(TagBuffer tagBuffer) {
+        this.tagBuffer = tagBuffer;
     }
 }
