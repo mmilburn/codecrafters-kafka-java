@@ -53,7 +53,6 @@ public class VarInt {
                     while ((val & ~0x7F) != 0) {
                         dos.write((byte) ((val & 0x7F) | 0x80));
                         val >>>= 7;
-
                     }
                     dos.write((byte) (val & 0x7F));
                 }

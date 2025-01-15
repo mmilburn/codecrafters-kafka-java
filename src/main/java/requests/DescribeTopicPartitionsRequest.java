@@ -4,6 +4,7 @@ import shared.CompactArray;
 import shared.Cursor;
 import shared.RequestTopic;
 import shared.TagBuffer;
+import shared.serializer.CursorSerializer;
 import shared.serializer.ElementSerializer;
 import shared.serializer.RequestTopicSerializer;
 import util.StreamUtils;
@@ -37,8 +38,7 @@ public class DescribeTopicPartitionsRequest extends RequestBody<DescribeTopicPar
         ElementSerializer<RequestTopic> requestTopicSerializer = new RequestTopicSerializer();
         this.topicsArray = CompactArray.fromByteBuffer(data, requestTopicSerializer, RequestTopic::new);
         this.responsePartitionLimit = data.getInt();
-        //FIXME: Another hack!
-        this.cursor = Cursor.nullCursor().fromByteBuffer(data);
+        this.cursor = Cursor.from(data, new CursorSerializer());
         this.tagBuffer = TagBuffer.fromByteBuffer(data);
         return this;
     }
@@ -46,9 +46,10 @@ public class DescribeTopicPartitionsRequest extends RequestBody<DescribeTopicPar
     @Override
     public byte[] toBytes() {
         return StreamUtils.toBytes(dos -> {
+            CursorSerializer serializer = new CursorSerializer();
             dos.write(this.topicsArray.toBytes());
             dos.writeInt(this.responsePartitionLimit);
-            dos.write(this.cursor.toBytes(this.cursor));
+            dos.write(serializer.toBytes(this.cursor));
             dos.write(this.tagBuffer.toBytes());
         });
     }

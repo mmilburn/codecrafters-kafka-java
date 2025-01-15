@@ -4,6 +4,7 @@ import requests.Request;
 import shared.APIVersions;
 import shared.CompactArray;
 import shared.TagBuffer;
+import shared.serializer.APIVersionsSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
@@ -27,9 +28,7 @@ public class APIVersionsResponse extends ResponseBody {
                 new APIVersions((short) 1, (short) 0, (short) 16, new TagBuffer())
 
         ));
-        this.apiVersionsArray = new CompactArray<>(apiVersionsList,
-                //FIXME: this is hacky!
-                new APIVersions());
+        this.apiVersionsArray = CompactArray.withElements(apiVersionsList, new APIVersionsSerializer());
     }
 
     @Override

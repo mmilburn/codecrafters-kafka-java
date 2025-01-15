@@ -2,6 +2,7 @@ package responses;
 
 import requests.DescribeTopicPartitionsRequest;
 import shared.*;
+import shared.serializer.CursorSerializer;
 import shared.serializer.ResponseTopicSerializer;
 import util.StreamUtils;
 
@@ -31,17 +32,18 @@ public class DescribeTopicPartitionsResponse extends ResponseBody {
     public DescribeTopicPartitionsResponse fromBytebuffer(ByteBuffer data) {
         this.throttleTime = data.getInt();
         this.topicsArray = CompactArray.fromByteBuffer(data, new ResponseTopicSerializer(), ResponseTopic::new);
-        this.nextCursor = Cursor.nullCursor().fromByteBuffer(data);
+        this.nextCursor = Cursor.from(data, new CursorSerializer());
         this.tagBuffer = TagBuffer.fromByteBuffer(data);
         return this;
     }
 
     @Override
     public byte[] toBytes() {
+        CursorSerializer serializer = new CursorSerializer();
         return StreamUtils.toBytes(dos -> {
             dos.writeInt(throttleTime);
             dos.write(topicsArray.toBytes());
-            dos.write(nextCursor.toBytes(nextCursor));
+            dos.write(serializer.toBytes(nextCursor));
             dos.write(tagBuffer.toBytes());
         });
     }

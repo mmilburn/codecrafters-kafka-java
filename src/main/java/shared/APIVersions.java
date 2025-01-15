@@ -1,11 +1,6 @@
 package shared;
 
-import shared.serializer.ElementSerializer;
-import util.StreamUtils;
-
-import java.nio.ByteBuffer;
-
-public class APIVersions implements ElementSerializer<APIVersions> {
+public class APIVersions {
     private short apiKey;
     private short minSupportedVersion;
     private short maxSupportedVersion;
@@ -37,18 +32,4 @@ public class APIVersions implements ElementSerializer<APIVersions> {
         return tagBuffer;
     }
 
-    @Override
-    public byte[] toBytes(APIVersions apiVersions) {
-        return StreamUtils.toBytes(dos -> {
-            dos.writeShort(apiVersions.getApiKey());
-            dos.writeShort(apiVersions.getMinSupportedVersion());
-            dos.writeShort(apiVersions.getMaxSupportedVersion());
-            dos.write(apiVersions.getTagBuffer().toBytes());
-        });
-    }
-
-    @Override
-    public APIVersions fromByteBuffer(ByteBuffer data) {
-        return new APIVersions(data.getShort(), data.getShort(), data.getShort(), TagBuffer.fromByteBuffer(data));
-    }
 }
