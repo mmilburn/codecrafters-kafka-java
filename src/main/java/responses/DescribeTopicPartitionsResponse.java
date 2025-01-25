@@ -1,14 +1,21 @@
 package responses;
 
+import log.PartitionRecord;
+import log.Record;
+import log.RecordBatch;
+import log.TopicRecord;
 import requests.DescribeTopicPartitionsRequest;
 import shared.*;
 import shared.serializer.CursorSerializer;
+import shared.serializer.PartitionSerializer;
 import shared.serializer.ResponseTopicSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class DescribeTopicPartitionsResponse extends ResponseBody {
     private int throttleTime = 0;
@@ -16,16 +23,57 @@ public class DescribeTopicPartitionsResponse extends ResponseBody {
     private Cursor nextCursor;
     private TagBuffer tagBuffer = new TagBuffer();
 
-    public DescribeTopicPartitionsResponse(DescribeTopicPartitionsRequest req) {
+    public DescribeTopicPartitionsResponse(DescribeTopicPartitionsRequest req, List<RecordBatch> batches) {
         List<ResponseTopic> respTopics = new ArrayList<>();
         for (RequestTopic reqTopic : req.getTopicsArray().getElements()) {
-            ResponseTopic respTopic = new ResponseTopic();
-            respTopic.setTopicName(reqTopic.getTopicName());
-            respTopic.setErrorCode((short) 3);
-            respTopics.add(respTopic);
+            respTopics.add(responseForRequestTopic(reqTopic, batches));
         }
         this.topicsArray = CompactArray.withElements(respTopics, new ResponseTopicSerializer());
         this.nextCursor = Cursor.nullCursor();
+    }
+
+    private ResponseTopic responseForRequestTopic(RequestTopic requestTopic, List<RecordBatch> batches) {
+        ResponseTopic responseTopic = new ResponseTopic();
+        responseTopic.setTopicName(requestTopic.getTopicName());
+        getTopicUUID(requestTopic, batches).ifPresentOrElse(
+                topicUUID -> {
+                    responseTopic.setTopicID(topicUUID);
+                    responseTopic.setPartitionCompactArray(buildPartitionsArrayForTopic(topicUUID, batches));
+                },
+                () -> {
+                    System.err.println("Failed to find UUID for topic: " + requestTopic.getTopicName() + " in record batches.");
+                    responseTopic.setErrorCode((short) 3);
+                }
+        );
+        return responseTopic;
+    }
+
+    private static Optional<UUID> getTopicUUID(RequestTopic requestTopic, List<RecordBatch> batches) {
+        return batches.stream()
+                .flatMap(batch -> batch.getRecords().stream())
+                .map(Record::getValue)
+                .filter(val -> val instanceof TopicRecord)
+                .map(val -> (TopicRecord) val)
+                .filter(topicRecord -> topicRecord.getName().equals(requestTopic.getTopicName()))
+                .map(TopicRecord::getTopicUUID)
+                .findFirst();
+    }
+
+    private CompactArray<Partition> buildPartitionsArrayForTopic(UUID topicUUID, List<RecordBatch> batches) {
+        List<Partition> partitions = batches.stream()
+                .flatMap(batch -> batch.getRecords().stream())
+                .map(Record::getValue)
+                .filter(val -> val instanceof PartitionRecord)
+                .map(val -> (PartitionRecord) val)
+                .filter(partitionRecord -> partitionRecord.getTopicUUID().equals(topicUUID))
+                .map(partitionRecord -> {
+                    Partition partition = new Partition();
+                    partition.setLeaderID(partitionRecord.getLeader());
+                    partition.setPartitionIndex(partitionRecord.getPartitionID());
+                    return partition;
+                })
+                .toList();
+        return CompactArray.withElements(partitions, new PartitionSerializer());
     }
 
     @Override

@@ -4,25 +4,40 @@ import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class CompactString {
-    private String str;
+    private final String value;
 
     public CompactString(String str) {
-        this.str = str;
+        this.value = str;
     }
 
-    public String getStr() {
-        return str;
+    @Override
+    public String toString() {
+        return  this.value;
     }
 
-    public void setStr(String str) {
-        this.str = str;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CompactString that = (CompactString) obj;
+        return Objects.equals(this.value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.value);
     }
 
     public byte[] toBytes() {
         return StreamUtils.toBytes(dos -> {
-            byte[] utf8 = str.getBytes(StandardCharsets.UTF_8);
+            byte[] utf8 = value.getBytes(StandardCharsets.UTF_8);
             dos.write(new VarInt(utf8.length + 1).toBytes());
             dos.write(utf8);
         });
