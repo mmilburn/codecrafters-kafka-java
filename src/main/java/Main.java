@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -19,11 +20,33 @@ import java.util.concurrent.Executors;
 
 public class Main {
     private static final ExecutorService executorService = Executors.newFixedThreadPool(8);
-    private static final Path logPath = Path.of("/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log");
-    private static final List<RecordBatch> batches = getRecordBatches();;
+    private static List<RecordBatch> batches = new ArrayList<>();
 
     public static void main(String[] args) {
         int port = 9092;
+        if (!args[0].isEmpty()) {
+            Path propertiesPath = Path.of(args[0].trim());
+            try {
+                String logDirs = Files.readAllLines(propertiesPath).stream()
+                        .filter(line -> line.startsWith("log.dir"))
+                        .findFirst().orElse("");
+                List<Path> logFiles = Arrays.stream(logDirs.split("=")[1].trim().split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .flatMap(path -> {
+                            try {
+                                return Files.walk(Path.of(path));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .filter(Files::isRegularFile)
+                        .filter(path -> path.toString().endsWith(".log")).toList();
+                batches = getRecordBatches(logFiles);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
@@ -70,16 +93,18 @@ public class Main {
         }
     }
 
-    private static List<RecordBatch> getRecordBatches() {
+    private static List<RecordBatch> getRecordBatches(List<Path> logFiles) {
         List<RecordBatch> batches = new ArrayList<>();
-        try (FileChannel fileChannel = FileChannel.open(logPath, StandardOpenOption.READ)) {
-            ByteBuffer data = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
-            while (data.hasRemaining()) {
-                RecordBatch batch = RecordBatch.fromByteBuffer(data);
-                batches.add(batch);
+        for (Path logPath : logFiles) {
+            try (FileChannel fileChannel = FileChannel.open(logPath, StandardOpenOption.READ)) {
+                ByteBuffer data = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+                while (data.hasRemaining()) {
+                    RecordBatch batch = RecordBatch.fromByteBuffer(data);
+                    batches.add(batch);
+                }
+            } catch (IOException ioNo) {
+                System.err.println("IOException: " + Arrays.toString(ioNo.getStackTrace()));
             }
-        } catch (IOException ioNo) {
-            System.err.println("IOException: " + Arrays.toString(ioNo.getStackTrace()));
         }
         return batches;
     }
