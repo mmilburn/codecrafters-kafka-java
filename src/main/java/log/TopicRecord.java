@@ -23,6 +23,7 @@ public class TopicRecord extends ValueRecord {
 
     @Override
     protected void parse(ByteBuffer data) {
+        this.length = VarInt.fromByteBuffer(data);
         this.frameVersion = data.get();
         this.type = data.get();
         this.version = data.get();

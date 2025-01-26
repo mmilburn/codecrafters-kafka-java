@@ -10,18 +10,16 @@ public class Record {
     private final VarInt timestampDelta;
     private final VarInt offsetDelta;
     private final Key key;
-    private final VarInt valueLen;
     private final ValueRecord value;
     //unsigned
     private final VarInt headersArrayCount;
 
-    private Record(VarInt length, byte attributes, VarInt timestampDelta, VarInt offsetDelta, Key key, VarInt valueLen, ValueRecord value, VarInt headersArrayCount) {
+    private Record(VarInt length, byte attributes, VarInt timestampDelta, VarInt offsetDelta, Key key, ValueRecord value, VarInt headersArrayCount) {
         this.length  = length;
         this.attributes = attributes;
         this.timestampDelta = timestampDelta;
         this.offsetDelta = offsetDelta;
         this.key = key;
-        this.valueLen = valueLen;
         this.value = value;
         this.headersArrayCount = headersArrayCount;
     }
@@ -46,10 +44,6 @@ public class Record {
         return key;
     }
 
-    public VarInt getValueLen() {
-        return valueLen;
-    }
-
     public ValueRecord getValue() {
         return value;
     }
@@ -60,7 +54,7 @@ public class Record {
 
     public static Record fromByteBuffer(ByteBuffer data) {
         return new Record(VarInt.fromByteBuffer(data), data.get(), VarInt.fromByteBuffer(data),
-                VarInt.fromByteBuffer(data), Key.fromByteBuffer(data), VarInt.fromByteBuffer(data),
-                ValueRecordFactory.fromByteBuffer(data), VarInt.fromByteBuffer(data));
+                VarInt.fromByteBuffer(data), Key.fromByteBuffer(data), ValueRecordFactory.fromByteBuffer(data),
+                VarInt.fromByteBuffer(data));
     }
 }

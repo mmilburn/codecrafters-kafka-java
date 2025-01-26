@@ -5,10 +5,15 @@ import shared.VarInt;
 import java.nio.ByteBuffer;
 
 public abstract class ValueRecord {
+    protected VarInt length;
     protected byte frameVersion;
     protected byte type;
     protected byte version;
     protected VarInt taggedFieldsCount;
+
+    public VarInt getLength() {
+        return length;
+    }
 
     public byte getFrameVersion() {
         return frameVersion;
