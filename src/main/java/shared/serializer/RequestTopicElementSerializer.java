@@ -1,7 +1,6 @@
 package shared.serializer;
 
 import shared.CompactArray;
-import shared.RequestPartition;
 import shared.RequestTopicElement;
 import shared.TagBuffer;
 import util.StreamUtils;
@@ -25,7 +24,7 @@ public class RequestTopicElementSerializer implements ElementSerializer<RequestT
         UUID topicID = new UUID(data.getLong(), data.getLong());
         return new RequestTopicElement(
                 topicID,
-                CompactArray.fromByteBuffer(data, new RequestPartitionSerializer(), RequestPartition::new),
+                CompactArray.fromByteBuffer(data, new RequestPartitionSerializer()),
                 TagBuffer.fromByteBuffer(data));
     }
 }

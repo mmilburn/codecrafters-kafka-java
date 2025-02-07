@@ -1,6 +1,8 @@
 package shared;
 
 import log.Record;
+import shared.serializer.AbortedTransactionSerializer;
+import shared.serializer.RecordSerializer;
 
 public class PartitionResponse {
     private int partitionIndex;
@@ -26,6 +28,28 @@ public class PartitionResponse {
         this.preferredReadReplica = preferredReadReplica;
         this.records = records;
         this.tg = tg;
+    }
+
+    private static PartitionResponse EmptyPartitionResponseWithErrorCode(short errorCode) {
+        return new PartitionResponse(
+                0,
+                errorCode,
+                0,
+                0,
+                0,
+                CompactArray.empty(new AbortedTransactionSerializer()),
+                0,
+                CompactArray.empty(new RecordSerializer()),
+                new TagBuffer()
+        );
+    }
+
+    public static PartitionResponse UnknownTopicPartitionResponse() {
+        return EmptyPartitionResponseWithErrorCode((short) 100);
+    }
+
+    public static PartitionResponse EmptyTopicPartitionResponse() {
+        return EmptyPartitionResponseWithErrorCode((short) 0);
     }
 
     public int getPartitionIndex() {

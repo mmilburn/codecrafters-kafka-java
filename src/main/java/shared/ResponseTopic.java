@@ -9,7 +9,7 @@ public class ResponseTopic {
     private CompactString topicName;
     private UUID topicID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private boolean isInternal;
-    private CompactArray<Partition> partitionCompactArray = CompactArray.empty(new PartitionSerializer(), Partition::new);
+    private CompactArray<Partition> partitionCompactArray = CompactArray.empty(new PartitionSerializer());
     private int topicAuthorizedOperations;
     private TagBuffer tagBuffer = new TagBuffer();
 

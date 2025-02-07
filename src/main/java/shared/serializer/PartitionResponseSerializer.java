@@ -1,7 +1,5 @@
 package shared.serializer;
 
-import log.Record;
-import shared.AbortedTransaction;
 import shared.CompactArray;
 import shared.PartitionResponse;
 import shared.TagBuffer;
@@ -33,9 +31,9 @@ public class PartitionResponseSerializer implements ElementSerializer<PartitionR
                 data.getLong(),
                 data.getLong(),
                 data.getLong(),
-                CompactArray.fromByteBuffer(data, new AbortedTransactionSerializer(), AbortedTransaction::new),
+                CompactArray.fromByteBuffer(data, new AbortedTransactionSerializer()),
                 data.getInt(),
-                CompactArray.fromByteBuffer(data, new RecordSerializer(), Record::new),
+                CompactArray.fromByteBuffer(data, new RecordSerializer()),
                 TagBuffer.fromByteBuffer(data)
         );
     }

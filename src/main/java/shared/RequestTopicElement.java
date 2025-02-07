@@ -34,7 +34,7 @@ public class RequestTopicElement {
 
     public static RequestTopicElement fromByteBuffer(ByteBuffer data) {
         UUID topicID = new UUID(data.getLong(), data.getLong());
-        return new RequestTopicElement(topicID, CompactArray.fromByteBuffer(data, new RequestPartitionSerializer(), RequestPartition::new), TagBuffer.fromByteBuffer(data));
+        return new RequestTopicElement(topicID, CompactArray.fromByteBuffer(data, new RequestPartitionSerializer()), TagBuffer.fromByteBuffer(data));
     }
 
     public byte[] toBytes() {

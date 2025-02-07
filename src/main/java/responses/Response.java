@@ -21,7 +21,7 @@ public class Response {
         switch (request.header().getRequestAPIKey()) {
             case 1 -> {
                 this.responseHeader = new ResponseHeader(request.header().getCorrelationId(), new TagBuffer());
-                this.body = FetchResponse.fromRequest(request);
+                this.body = FetchResponse.fromRequest(request, batches);
             }
             case 18 -> {
                 this.responseHeader = new ResponseHeader(request.header().getCorrelationId(), null);

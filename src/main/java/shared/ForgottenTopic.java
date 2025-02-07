@@ -36,7 +36,7 @@ public class ForgottenTopic {
     public static ForgottenTopic fromByteBuffer(ByteBuffer data) {
         Supplier<Integer> defaultIntValue = () -> -1;
         UUID topicID = new UUID(data.getLong(), data.getLong());
-        return new ForgottenTopic(topicID, CompactArray.fromByteBuffer(data, new IntegerSerializer(), defaultIntValue), TagBuffer.fromByteBuffer(data));
+        return new ForgottenTopic(topicID, CompactArray.fromByteBuffer(data, new IntegerSerializer()), TagBuffer.fromByteBuffer(data));
     }
 
     public byte[] toBytes() {

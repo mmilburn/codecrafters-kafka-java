@@ -23,7 +23,7 @@ public class ForgottenTopicSerializer implements ElementSerializer<ForgottenTopi
     public ForgottenTopic fromByteBuffer(ByteBuffer data) {
         return new ForgottenTopic(
                 new UUID(data.getLong(), data.getLong()),
-                CompactArray.fromByteBuffer(data, new IntegerSerializer(), () -> -1),
+                CompactArray.fromByteBuffer(data, new IntegerSerializer()),
                 TagBuffer.fromByteBuffer(data)
         );
     }

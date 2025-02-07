@@ -1,7 +1,6 @@
 package shared.serializer;
 
 import shared.CompactArray;
-import shared.PartitionResponse;
 import shared.TagBuffer;
 import shared.TopicResponse;
 import util.StreamUtils;
@@ -24,7 +23,7 @@ public class TopicResponseSerializer implements ElementSerializer<TopicResponse>
     public TopicResponse fromByteBuffer(ByteBuffer data) {
         return new TopicResponse(
                 new UUID(data.getLong(), data.getLong()),
-                CompactArray.fromByteBuffer(data, new PartitionResponseSerializer(), PartitionResponse::new),
+                CompactArray.fromByteBuffer(data, new PartitionResponseSerializer()),
                 TagBuffer.fromByteBuffer(data)
         );
     }

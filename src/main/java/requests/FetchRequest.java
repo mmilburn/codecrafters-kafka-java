@@ -80,8 +80,8 @@ public class FetchRequest extends RequestBody<FetchRequest> {
                 data.get(),
                 data.getInt(),
                 data.getInt(),
-                CompactArray.fromByteBuffer(data, new RequestTopicElementSerializer(), RequestTopicElement::new),
-                CompactArray.fromByteBuffer(data, new ForgottenTopicSerializer(), ForgottenTopic::new),
+                CompactArray.fromByteBuffer(data, new RequestTopicElementSerializer()),
+                CompactArray.fromByteBuffer(data, new ForgottenTopicSerializer()),
                 CompactString.fromByteBuffer(data),
                 TagBuffer.fromByteBuffer(data)
         );

@@ -84,7 +84,7 @@ public class DescribeTopicPartitionsResponse extends ResponseBody {
     @Override
     public DescribeTopicPartitionsResponse fromBytebuffer(ByteBuffer data) {
         this.throttleTime = data.getInt();
-        this.topicsArray = CompactArray.fromByteBuffer(data, new ResponseTopicSerializer(), ResponseTopic::new);
+        this.topicsArray = CompactArray.fromByteBuffer(data, new ResponseTopicSerializer());
         this.nextCursor = Cursor.from(data, new CursorSerializer());
         this.tagBuffer = TagBuffer.fromByteBuffer(data);
         return this;

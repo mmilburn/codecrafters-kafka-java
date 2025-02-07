@@ -56,7 +56,7 @@ public class TopicResponse {
     public static TopicResponse fromByteBuffer(ByteBuffer data) {
         return new TopicResponse(
                 new UUID(data.getLong(), data.getLong()),
-                CompactArray.fromByteBuffer(data, new PartitionResponseSerializer(), PartitionResponse::new),
+                CompactArray.fromByteBuffer(data, new PartitionResponseSerializer()),
                 TagBuffer.fromByteBuffer(data)
         );
     }

@@ -76,14 +76,14 @@ public class PartitionRecord extends ValueRecord {
         this.version = data.get();
         this.partitionID = data.getInt();
         this.topicUUID = new UUID(data.getLong(), data.getLong());
-        this.replicaArray = CompactArray.fromByteBuffer(data, integerSerializer, defaultIntValue);
-        this.inSyncReplicaArray = CompactArray.fromByteBuffer(data, integerSerializer, defaultIntValue);
-        this.removingReplicasArray = CompactArray.fromByteBuffer(data, integerSerializer, defaultIntValue);
-        this.addingReplicasArray = CompactArray.fromByteBuffer(data, integerSerializer, defaultIntValue);
+        this.replicaArray = CompactArray.fromByteBuffer(data, integerSerializer);
+        this.inSyncReplicaArray = CompactArray.fromByteBuffer(data, integerSerializer);
+        this.removingReplicasArray = CompactArray.fromByteBuffer(data, integerSerializer);
+        this.addingReplicasArray = CompactArray.fromByteBuffer(data, integerSerializer);
         this.leader = data.getInt();
         this.leaderEpoch = data.getInt();
         this.partitionEpoch = data.getInt();
-        this.directoriesArray = CompactArray.fromByteBuffer(data, new UUIDSerializer(), defaultUUID);
+        this.directoriesArray = CompactArray.fromByteBuffer(data, new UUIDSerializer());
         this.taggedFieldsCount = VarInt.fromByteBuffer(data);
     }
 
