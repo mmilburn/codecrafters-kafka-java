@@ -33,7 +33,7 @@ public class PartitionResponseSerializer implements ElementSerializer<PartitionR
                 data.getLong(),
                 CompactArray.fromByteBuffer(data, new AbortedTransactionSerializer()),
                 data.getInt(),
-                CompactArray.fromByteBuffer(data, new RecordSerializer()),
+                CompactArray.fromByteBuffer(data, new ByteArraySerializer()),
                 TagBuffer.fromByteBuffer(data)
         );
     }

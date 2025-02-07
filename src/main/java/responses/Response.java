@@ -6,7 +6,10 @@ import shared.TagBuffer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 public class Response {
@@ -17,11 +20,11 @@ public class Response {
         this.responseHeader = responseHeader;
     }
 
-    public Response(Request<?> request, List<RecordBatch> batches) {
+    public Response(Request<?> request, List<RecordBatch> batches, Map<Path, byte[]> messages, Map<UUID, List<String>> topicToMessagePath) {
         switch (request.header().getRequestAPIKey()) {
             case 1 -> {
                 this.responseHeader = new ResponseHeader(request.header().getCorrelationId(), new TagBuffer());
-                this.body = FetchResponse.fromRequest(request, batches);
+                this.body = FetchResponse.fromRequest(request, messages, topicToMessagePath);
             }
             case 18 -> {
                 this.responseHeader = new ResponseHeader(request.header().getCorrelationId(), null);

@@ -8,7 +8,6 @@ import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class PartitionRecord extends ValueRecord {
     private int partitionID;
@@ -68,8 +67,6 @@ public class PartitionRecord extends ValueRecord {
     @Override
     protected void parse(ByteBuffer data) {
         IntegerSerializer integerSerializer = new IntegerSerializer();
-        Supplier<Integer> defaultIntValue = () -> -1;
-        Supplier<UUID> defaultUUID = () -> UUID.fromString("00000000-0000-0000-0000-000000000000");
         this.length = VarInt.fromByteBuffer(data);
         this.frameVersion = data.get();
         this.type = data.get();

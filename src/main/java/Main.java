@@ -1,6 +1,10 @@
+import log.PartitionRecord;
+import log.Record;
 import log.RecordBatch;
+import log.TopicRecord;
 import requests.Request;
 import responses.Response;
+import shared.CompactString;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,15 +16,16 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class Main {
     private static final ExecutorService executorService = Executors.newFixedThreadPool(8);
     private static List<RecordBatch> batches = new ArrayList<>();
+    private static Map<Path, byte[]> messages = new HashMap<>();
+    private static Map<UUID, List<String>> topicToMessagePath = new HashMap<>();
 
     public static void main(String[] args) {
         int port = 9092;
@@ -30,7 +35,7 @@ public class Main {
                 String logDirs = Files.readAllLines(propertiesPath).stream()
                         .filter(line -> line.startsWith("log.dir"))
                         .findFirst().orElse("");
-                List<Path> logFiles = Arrays.stream(logDirs.split("=")[1].trim().split(","))
+                Map<Boolean, List<Path>> logFiles = Arrays.stream(logDirs.split("=")[1].trim().split(","))
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
                         .flatMap(path -> {
@@ -41,8 +46,13 @@ public class Main {
                             }
                         })
                         .filter(Files::isRegularFile)
-                        .filter(path -> path.toString().endsWith(".log")).toList();
-                batches = getRecordBatches(logFiles);
+                        .filter(path -> path.toString().endsWith(".log"))
+                        .collect(Collectors.partitioningBy(
+                                path -> path.toString().contains("__cluster_metadata")
+                        ));
+                batches = getRecordBatches(logFiles.get(true));
+                messages = getMessages(logFiles.get(false));
+                topicToMessagePath = buildTopicToMessageMap(batches);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -75,7 +85,7 @@ public class Main {
                     dis.readFully(requestBytes);
                     ByteBuffer requestBuffer = ByteBuffer.wrap(requestBytes);
                     Request<?> request = Request.fromByteBuffer(requestBuffer);
-                    Response response = new Response(request, batches);
+                    Response response = new Response(request, batches, messages, topicToMessagePath);
                     os.write(response.toBytes());
                     os.flush();
                 }
@@ -107,6 +117,47 @@ public class Main {
             }
         }
         return batches;
+    }
+
+    private static Map<Path, byte[]> getMessages(List<Path> logFiles) {
+        Map<Path, byte[]> messages = new HashMap<>();
+        for (Path logFile : logFiles) {
+            try {
+                messages.put(logFile, Files.readAllBytes(logFile));
+            } catch (IOException ioNo) {
+                System.err.println("IOException: " + Arrays.toString(ioNo.getStackTrace()));
+            }
+        }
+        return messages;
+    }
+
+    private static Map<UUID, List<String>> buildTopicToMessageMap(List<RecordBatch> batches) {
+        Map<UUID, List<String>> map = new HashMap<>();
+
+        Map<UUID, CompactString> topicMap = batches.stream()
+                .flatMap(batch -> batch.getRecords().stream())
+                .map(log.Record::getValue)
+                .filter(valueRecord -> valueRecord instanceof TopicRecord)
+                .map(valueRecord -> (TopicRecord) valueRecord)
+                .collect(Collectors.toMap(TopicRecord::getTopicUUID, TopicRecord::getName));
+
+        Map<UUID, List<Integer>> partitionMap = batches.stream()
+                .flatMap(batch -> batch.getRecords().stream())
+                .map(Record::getValue)
+                .filter(valueRecord -> valueRecord instanceof PartitionRecord)
+                .map(valueRecord -> (PartitionRecord) valueRecord)
+                .collect(Collectors.groupingBy(PartitionRecord::getTopicUUID, Collectors.mapping(PartitionRecord::getPartitionID, Collectors.toList())));
+
+        partitionMap.forEach((uuid, partitionIds) -> {
+            CompactString topicName = topicMap.get(uuid);
+            if (topicName != null) {  // Ensure there is a matching topic name
+                List<String> directories = partitionIds.stream()
+                        .map(partitionId -> topicName + "-" + partitionId)
+                        .collect(Collectors.toList());
+                map.put(uuid, directories);
+            }
+        });
+        return map;
     }
 
 }

@@ -1,8 +1,7 @@
 package shared;
 
-import log.Record;
 import shared.serializer.AbortedTransactionSerializer;
-import shared.serializer.RecordSerializer;
+import shared.serializer.ByteArraySerializer;
 
 public class PartitionResponse {
     private int partitionIndex;
@@ -12,13 +11,13 @@ public class PartitionResponse {
     private long logStartOffset;
     private CompactArray<AbortedTransaction> abortedTransactions;
     private int preferredReadReplica;
-    private CompactArray<Record> records;
+    private CompactArray<byte[]> records;
     private TagBuffer tg;
 
     public PartitionResponse() {
     }
 
-    public PartitionResponse(int partitionIndex, short errorCode, long highWatermark, long lastStableOffset, long logStartOffset, CompactArray<AbortedTransaction> abortedTransactions, int preferredReadReplica, CompactArray<Record> records, TagBuffer tg) {
+    public PartitionResponse(int partitionIndex, short errorCode, long highWatermark, long lastStableOffset, long logStartOffset, CompactArray<AbortedTransaction> abortedTransactions, int preferredReadReplica, CompactArray<byte[]> records, TagBuffer tg) {
         this.partitionIndex = partitionIndex;
         this.errorCode = errorCode;
         this.highWatermark = highWatermark;
@@ -39,7 +38,7 @@ public class PartitionResponse {
                 0,
                 CompactArray.empty(new AbortedTransactionSerializer()),
                 0,
-                CompactArray.empty(new RecordSerializer()),
+                CompactArray.empty(new ByteArraySerializer()),
                 new TagBuffer()
         );
     }
@@ -108,11 +107,11 @@ public class PartitionResponse {
         this.preferredReadReplica = preferredReadReplica;
     }
 
-    public CompactArray<Record> getRecords() {
+    public CompactArray<byte[]> getRecords() {
         return records;
     }
 
-    public void setRecords(CompactArray<Record> records) {
+    public void setRecords(CompactArray<byte[]> records) {
         this.records = records;
     }
 

@@ -1,21 +1,19 @@
 package responses;
 
-import log.Record;
-import log.RecordBatch;
-import log.TopicRecord;
 import requests.FetchRequest;
 import requests.Request;
 import shared.*;
+import shared.serializer.ByteArraySerializer;
 import shared.serializer.PartitionResponseSerializer;
 import shared.serializer.TopicResponseSerializer;
 import util.StreamUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class FetchResponse extends ResponseBody {
     private final int throttleTimeMs;
@@ -32,7 +30,7 @@ public class FetchResponse extends ResponseBody {
         this.tg = tg;
     }
 
-    protected static FetchResponse fromRequest(Request<?> req, List<RecordBatch> batches) {
+    protected static FetchResponse fromRequest(Request<?> req, Map<Path, byte[]> messages, Map<UUID, List<String>> topicToMessagePath) {
         FetchRequest fetchReq = (FetchRequest) req.body();
         List<UUID> requestedIds = fetchReq.getTopics().getElements().stream()
                 .map(RequestTopicElement::getTopicID).toList();
@@ -47,30 +45,30 @@ public class FetchResponse extends ResponseBody {
             );
         }
 
-        Map<UUID, CompactString> topicMap = batches.stream()
-                .flatMap(batch -> batch.getRecords().stream())
-                .map(Record::getValue)
-                .filter(valueRecord -> valueRecord instanceof TopicRecord)
-                .map(valueRecord -> (TopicRecord) valueRecord)
-                .collect(Collectors.toMap(TopicRecord::getTopicUUID, TopicRecord::getName));
-
-/*        Map<UUID, Integer> partitionMap = batches.stream()
-                .flatMap(batch -> batch.getRecords().stream())
-                .map(Record::getValue)
-                .filter(valueRecord -> valueRecord instanceof PartitionRecord)
-                .map(valueRecord -> (PartitionRecord) valueRecord)
-                .collect(Collectors.toMap(PartitionRecord::getTopicUUID, PartitionRecord::getPartitionID));
-        System.err.println(partitionMap);*/
-
         List<TopicResponse> topicResponses = new ArrayList<>();
         for (UUID uuid : requestedIds) {
-            if (topicMap.containsKey(uuid)) {
-/*                if (partitionMap.containsKey(uuid)) {
-                    //TODO
-                    topicResponses.add(new TopicResponse());
+            if (topicToMessagePath.containsKey(uuid)) {
+                List<String> dirs = topicToMessagePath.get(uuid);
+                if (!dirs.isEmpty()) {
+                    PartitionResponse partitionResponse = PartitionResponse.EmptyTopicPartitionResponse();
+                    List<byte[]> records = new ArrayList<>();
+                    for (Path path : messages.keySet()) {
+                        for (String dir : dirs) {
+                            if (path.toString().contains(dir)) {
+                                records.add(messages.get(path));
+                            }
+                        }
+                    }
+                    partitionResponse.setRecords(CompactArray.withElements(records, new ByteArraySerializer()));
+                    topicResponses.add(new TopicResponse(uuid, CompactArray.withElements(List.of(partitionResponse), new PartitionResponseSerializer()), new TagBuffer()));
                 } else {
                     System.err.println("Topic UUID: " + uuid + " has no partitions!");
-                }*/
+                    topicResponses.add(new TopicResponse(
+                            uuid,
+                            CompactArray.empty(new PartitionResponseSerializer()),
+                            new TagBuffer()
+                    ));
+                }
             } else {
                 //Topic is unknown to us.
                 System.err.println("Unknown topic id: " + uuid);
