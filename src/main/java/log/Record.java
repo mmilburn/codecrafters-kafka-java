@@ -5,17 +5,20 @@ import shared.VarInt;
 import java.nio.ByteBuffer;
 
 public class Record {
-    private final VarInt length;
-    private final byte attributes;
-    private final VarInt timestampDelta;
-    private final VarInt offsetDelta;
-    private final Key key;
-    private final ValueRecord value;
+    private VarInt length;
+    private byte attributes;
+    private VarInt timestampDelta;
+    private VarInt offsetDelta;
+    private Key key;
+    private ValueRecord value;
     //unsigned
-    private final VarInt headersArrayCount;
+    private VarInt headersArrayCount;
+
+    public Record() {
+    }
 
     private Record(VarInt length, byte attributes, VarInt timestampDelta, VarInt offsetDelta, Key key, ValueRecord value, VarInt headersArrayCount) {
-        this.length  = length;
+        this.length = length;
         this.attributes = attributes;
         this.timestampDelta = timestampDelta;
         this.offsetDelta = offsetDelta;

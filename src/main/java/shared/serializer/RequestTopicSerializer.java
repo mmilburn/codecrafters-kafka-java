@@ -7,7 +7,7 @@ import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 
-public class RequestTopicSerializer implements ElementSerializer<RequestTopic>{
+public class RequestTopicSerializer implements ElementSerializer<RequestTopic> {
 
 
     @Override
@@ -21,4 +21,5 @@ public class RequestTopicSerializer implements ElementSerializer<RequestTopic>{
     @Override
     public RequestTopic fromByteBuffer(ByteBuffer data) {
         return new RequestTopic(CompactString.fromByteBuffer(data), TagBuffer.fromByteBuffer(data));
-    }}
+    }
+}

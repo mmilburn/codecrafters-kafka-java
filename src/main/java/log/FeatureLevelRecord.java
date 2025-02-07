@@ -2,6 +2,7 @@ package log;
 
 import shared.CompactString;
 import shared.VarInt;
+import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 
@@ -29,5 +30,18 @@ public class FeatureLevelRecord extends ValueRecord {
         this.name = CompactString.fromByteBuffer(data);
         this.featureLevel = data.getShort();
         this.taggedFieldsCount = VarInt.fromByteBuffer(data);
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return StreamUtils.toBytes(dos -> {
+            dos.write(this.length.toBytes());
+            dos.write(this.frameVersion);
+            dos.write(this.type);
+            dos.write(this.version);
+            dos.write(this.name.toBytes());
+            dos.writeShort(this.featureLevel);
+            dos.write(this.taggedFieldsCount.toBytes());
+        });
     }
 }

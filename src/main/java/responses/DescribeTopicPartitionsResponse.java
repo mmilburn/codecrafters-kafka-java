@@ -5,6 +5,7 @@ import log.Record;
 import log.RecordBatch;
 import log.TopicRecord;
 import requests.DescribeTopicPartitionsRequest;
+import requests.Request;
 import shared.*;
 import shared.serializer.CursorSerializer;
 import shared.serializer.PartitionSerializer;
@@ -23,13 +24,17 @@ public class DescribeTopicPartitionsResponse extends ResponseBody {
     private Cursor nextCursor;
     private TagBuffer tagBuffer = new TagBuffer();
 
-    public DescribeTopicPartitionsResponse(DescribeTopicPartitionsRequest req, List<RecordBatch> batches) {
+    private DescribeTopicPartitionsResponse(DescribeTopicPartitionsRequest req, List<RecordBatch> batches) {
         List<ResponseTopic> respTopics = new ArrayList<>();
         for (RequestTopic reqTopic : req.getTopicsArray().getElements()) {
             respTopics.add(responseForRequestTopic(reqTopic, batches));
         }
         this.topicsArray = CompactArray.withElements(respTopics, new ResponseTopicSerializer());
         this.nextCursor = Cursor.nullCursor();
+    }
+
+    public static DescribeTopicPartitionsResponse fromRequest(Request<?> req, List<RecordBatch> batches) {
+        return new DescribeTopicPartitionsResponse((DescribeTopicPartitionsRequest) req.body(), batches);
     }
 
     private ResponseTopic responseForRequestTopic(RequestTopic requestTopic, List<RecordBatch> batches) {

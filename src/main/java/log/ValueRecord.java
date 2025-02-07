@@ -5,7 +5,7 @@ import shared.VarInt;
 import java.nio.ByteBuffer;
 
 public abstract class ValueRecord {
-    protected VarInt length;
+    protected VarInt length = new VarInt(-1);
     protected byte frameVersion;
     protected byte type;
     protected byte version;
@@ -31,5 +31,7 @@ public abstract class ValueRecord {
         return taggedFieldsCount;
     }
 
-   protected abstract void parse(ByteBuffer data);
+    protected abstract void parse(ByteBuffer data);
+
+    public abstract byte[] toBytes();
 }

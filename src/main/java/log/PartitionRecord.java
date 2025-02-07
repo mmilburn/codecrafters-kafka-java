@@ -4,6 +4,7 @@ import shared.CompactArray;
 import shared.VarInt;
 import shared.serializer.IntegerSerializer;
 import shared.serializer.UUIDSerializer;
+import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -84,5 +85,27 @@ public class PartitionRecord extends ValueRecord {
         this.partitionEpoch = data.getInt();
         this.directoriesArray = CompactArray.fromByteBuffer(data, new UUIDSerializer(), defaultUUID);
         this.taggedFieldsCount = VarInt.fromByteBuffer(data);
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return StreamUtils.toBytes(dos -> {
+            dos.write(this.length.toBytes());
+            dos.write(this.frameVersion);
+            dos.write(this.type);
+            dos.write(this.version);
+            dos.writeInt(this.partitionID);
+            dos.writeLong(this.topicUUID.getMostSignificantBits());
+            dos.writeLong(this.topicUUID.getLeastSignificantBits());
+            dos.write(this.replicaArray.toBytes());
+            dos.write(this.inSyncReplicaArray.toBytes());
+            dos.write(this.removingReplicasArray.toBytes());
+            dos.write(this.addingReplicasArray.toBytes());
+            dos.writeInt(this.leader);
+            dos.writeInt(this.leaderEpoch);
+            dos.writeInt(this.partitionEpoch);
+            dos.write(this.directoriesArray.toBytes());
+            dos.write(this.taggedFieldsCount.toBytes());
+        });
     }
 }

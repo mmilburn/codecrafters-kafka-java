@@ -7,11 +7,7 @@ import java.nio.ByteBuffer;
 
 public class ResponseHeader {
     private int correlationId;
-    private TagBuffer tagBuffer = null;
-
-    public ResponseHeader(int correlationId) {
-        this.correlationId = correlationId;
-    }
+    private TagBuffer tagBuffer;
 
     public ResponseHeader(int correlationId, TagBuffer tagBuffer) {
         this.correlationId = correlationId;

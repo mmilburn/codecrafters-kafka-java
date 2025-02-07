@@ -2,6 +2,7 @@ package log;
 
 import shared.CompactString;
 import shared.VarInt;
+import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -30,5 +31,19 @@ public class TopicRecord extends ValueRecord {
         this.name = CompactString.fromByteBuffer(data);
         this.topicUUID = new UUID(data.getLong(), data.getLong());
         this.taggedFieldsCount = VarInt.fromByteBuffer(data);
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return StreamUtils.toBytes(dos -> {
+            dos.write(this.length.toBytes());
+            dos.write(this.frameVersion);
+            dos.write(this.type);
+            dos.write(this.version);
+            dos.write(this.name.toBytes());
+            dos.writeLong(this.topicUUID.getMostSignificantBits());
+            dos.writeLong(this.topicUUID.getLeastSignificantBits());
+            dos.write(this.taggedFieldsCount.toBytes());
+        });
     }
 }

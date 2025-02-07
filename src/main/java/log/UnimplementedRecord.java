@@ -2,6 +2,7 @@ package log;
 
 import shared.VarInt;
 import util.HexDump;
+import util.StreamUtils;
 
 import java.nio.ByteBuffer;
 
@@ -22,5 +23,15 @@ public class UnimplementedRecord extends ValueRecord {
         data.get(buffer);
         this.buf = buffer;
         HexDump.printHexDump(this.buf);
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return StreamUtils.toBytes(dos -> {
+            dos.write(this.length.toBytes());
+            if (this.length.getValue() > 0) {
+                dos.write(this.buf);
+            }
+        });
     }
 }
