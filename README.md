@@ -14,14 +14,14 @@ challenge as of 2025-02-13.
    and topic data from `log.dirs`). Otherwise, it will happily respond with "I
    know nothing of these topics or their partitions."
 
-# Running Locally
+## Running Locally
 
 You will need Java 23 (or later) and maven installed to run this code. The
 program can then be run with:
 
 `./your_program.sh /optional/path/to/server.properties`
 
-# Test Run Video
+## Test Run Video
 
 A short video of the code being run in the codecrafters test environment:
 
